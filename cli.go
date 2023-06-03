@@ -9,8 +9,9 @@ import (
 	"time"
 
 	_ "github.com/apache/calcite-avatica-go/v5"
-	"github.com/chzyer/readline"
+	"github.com/c-bata/go-prompt"
 	"github.com/olekukonko/tablewriter"
+	keywords "github.com/satyakommula96/calcite-cli/keywords"
 	"github.com/spf13/cobra"
 )
 
@@ -54,52 +55,83 @@ func runSQLPrompt(cmd *cobra.Command, args []string) {
 	fmt.Println("Enter your queries. Type 'exit' to quit.")
 	fmt.Println()
 
-	rl, err := readline.NewEx(&readline.Config{
-		Prompt:                 "calcite \U0001F48E:sql>  ",
-		HistoryFile:            "/tmp/calcite-cli-history",
-		InterruptPrompt:        "^C",
-		EOFPrompt:              "exit",
-		HistorySearchFold:      true,
-		DisableAutoSaveHistory: false,
-	})
-	if err != nil {
-		panic(err)
+	p := prompt.New(
+		executeQueryWrapper(db, table),
+		keywords.CustomCompleter,
+		prompt.OptionLivePrefix(LivePrefix),
+		prompt.OptionPrefixTextColor(prompt.Yellow),
+		prompt.OptionPreviewSuggestionTextColor(prompt.Blue),
+		prompt.OptionSuggestionBGColor(prompt.White),
+		prompt.OptionSuggestionTextColor(prompt.Black),
+		prompt.OptionSelectedSuggestionBGColor(prompt.DarkGray),
+		prompt.OptionSelectedSuggestionTextColor(prompt.White),
+		prompt.OptionCompletionOnDown(),
+		prompt.OptionTitle("Calcite CLI Prompt"),               // Set a title for the prompt
+		prompt.OptionInputTextColor(prompt.Cyan),               // Customize input text color
+		prompt.OptionDescriptionTextColor(prompt.White),        // Customize description text color
+		prompt.OptionSelectedSuggestionTextColor(prompt.Green), // Customize selected suggestion text color
+		prompt.OptionSelectedSuggestionBGColor(prompt.Black),   // Customize selected suggestion background color
+		prompt.OptionPrefix("calcite \U0001F48E:sql> "),        // Set a custom prefix for the prompt
+		prompt.OptionAddKeyBind(prompt.KeyBind{
+			Key: prompt.ControlC,
+			Fn: func(buf *prompt.Buffer) {
+				fmt.Println("Exiting calcite CLI Prompt...")
+				os.Exit(0)
+			},
+		}), // Add a custom key binding (e.g., Ctrl+C to exit)
+	)
+
+	p.Run()
+
+}
+
+var isMultiline bool
+
+func LivePrefix() (prefix string, useLivePrefix bool) {
+	if isMultiline {
+		prefix = "... "
+		useLivePrefix = true
+	} else {
+		prefix = "calcite \U0001F48E:sql> "
+		useLivePrefix = !isMultiline
 	}
-	defer rl.Close()
-	var cmds []string
-	for {
-		line, err := rl.Readline()
-		if err != nil {
-			break
-		}
-		line = strings.TrimSpace(line)
-		if len(line) == 0 {
-			continue
-		}
+	return prefix, useLivePrefix
+}
+
+func executeQueryWrapper(db *sql.DB, table *tablewriter.Table) func(string) {
+	var multiLineQuery strings.Builder
+
+	return func(query string) {
 		// Check for exit command
-		if strings.ToLower(line) == "exit" || strings.ToLower(line) == "quit" {
-			break
+		if strings.ToLower(query) == "exit" || strings.ToLower(query) == "quit" {
+			fmt.Println("Exiting calcite CLI Prompt...")
+			os.Exit(0)
 		}
-		cmds = append(cmds, line)
-		if !strings.HasSuffix(line, ";") {
-			rl.SetPrompt("...\t>")
-			continue
-		}
-		cmd := strings.Join(cmds, " ")
-		cmds = cmds[:0]
-		rl.SetPrompt("calcite \U0001F48E:sql>  ")
 
-		executeQuery(db, table, strings.TrimRight(cmd, ";"))
-		rl.SaveHistory(cmd)
+		trimmedQuery := strings.TrimSpace(query)
+
+		// Check if it is a multiline query
+		if strings.HasSuffix(trimmedQuery, ";") {
+			multiLineQuery.WriteString(trimmedQuery)
+			executeQuery(db, table, multiLineQuery.String())
+			multiLineQuery.Reset()
+			isMultiline = false
+		} else {
+			if !isMultiline {
+				multiLineQuery.Reset()
+				isMultiline = true
+			}
+			multiLineQuery.WriteString(trimmedQuery)
+			multiLineQuery.WriteString(" ")
+		}
 	}
-
-	fmt.Println("Exiting calcite CLI Prompt...")
 }
 
 func executeQuery(db *sql.DB, table *tablewriter.Table, query string) {
 	// Execute the query
 	start := time.Now()
-	rows, err := db.Query(query)
+	cmd := strings.TrimRight(query, ";")
+	rows, err := db.Query(cmd)
 	if err != nil {
 		log.Println("Error executing query:", err)
 		return

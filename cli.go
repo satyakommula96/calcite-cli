@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"database/sql"
 	"fmt"
 	"log"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	_ "github.com/apache/calcite-avatica-go/v5"
+	"github.com/chzyer/readline"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -51,72 +51,46 @@ func runSQLPrompt(cmd *cobra.Command, args []string) {
 	// Create a new table writer
 	table := tablewriter.NewWriter(os.Stdout)
 
-	// Create a scanner to read user input
-	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Println("Enter your queries. Type 'exit' to quit.")
 	fmt.Println()
 
-	var lines []string
-	isMultiline := false
-
-	// Continuously read queries and execute them
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt:                 "calcite \U0001F48E:sql>  ",
+		HistoryFile:            "/tmp/calcite-cli-history",
+		InterruptPrompt:        "^C",
+		EOFPrompt:              "exit",
+		HistorySearchFold:      true,
+		DisableAutoSaveHistory: false,
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer rl.Close()
+	var cmds []string
 	for {
-		if isMultiline {
-			fmt.Print("...\t-> ")
-		} else {
-			fmt.Print("calcite \U0001F48E:sql> ")
-		}
-		scanned := scanner.Scan()
-		if !scanned {
-			// Error occurred while scanning input
-			if err := scanner.Err(); err != nil {
-				log.Fatal(err)
-			}
+		line, err := rl.Readline()
+		if err != nil {
 			break
 		}
-
-		line := scanner.Text()
-
-		// Check for exit command
-		if strings.ToLower(line) == "exit" {
-			break
-		}
-
-		// Check for empty line
-		if line == "" {
+		line = strings.TrimSpace(line)
+		if len(line) == 0 {
 			continue
 		}
-
-		// Check for multiline command has suffix
-		if strings.HasSuffix(line, ";") && isMultiline {
-
-			// End of multiline command
-			lines = append(lines, strings.TrimSpace(line))
-
-			query := strings.TrimRight(strings.Join(lines, " "), ";")
-
-			// Execute the query
-			executeQuery(db, table, query)
-
-			// Reset the lines slice
-			lines = []string{}
-			isMultiline = false
-
-		} else if strings.HasSuffix(line, ";") {
-
-			// Single-line command
-			query := strings.TrimRight(line, ";")
-
-			// Execute the query
-			executeQuery(db, table, query)
-
-			isMultiline = false
-
-		} else {
-			// Multiline command append untill ";" in the line
-			lines = append(lines, line)
-			isMultiline = true
+		// Check for exit command
+		if strings.ToLower(line) == "exit" || strings.ToLower(line) == "quit" {
+			break
 		}
+		cmds = append(cmds, line)
+		if !strings.HasSuffix(line, ";") {
+			rl.SetPrompt("...\t>")
+			continue
+		}
+		cmd := strings.Join(cmds, " ")
+		cmds = cmds[:0]
+		rl.SetPrompt("calcite \U0001F48E:sql>  ")
+
+		executeQuery(db, table, strings.TrimRight(cmd, ";"))
+		rl.SaveHistory(cmd)
 	}
 
 	fmt.Println("Exiting calcite CLI Prompt...")

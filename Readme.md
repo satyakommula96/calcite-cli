@@ -36,4 +36,4 @@ Happy querying!
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+This project is licensed under the Apache License. See the [LICENSE](LICENSE) file for more information.

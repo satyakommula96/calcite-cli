@@ -21,6 +21,10 @@ limitations under the License.
 
 Calcite CLI is a command-line interface for executing SQL queries using the Calcite server. It provides a prompt where you can enter queries and view the results.
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/satyakommula96/calcite-cli.svg)](https://pkg.go.dev/github.com/satyakommula96/calcite-cli)
+[![Build Status](https://github.com/satyakommula96/calcite-cli/actions/workflows/build.yml/badge.svg)](https://github.com/satyakommula96/calcite-cli)
+
+
 ## Build
 
 ```

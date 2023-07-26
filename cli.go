@@ -66,7 +66,7 @@ func runSQLPrompt(cmd *cobra.Command, args []string) {
 	}
 	defer db.Close()
 
-	fmt.Println("Enter your queries. Type 'exit' to quit.")
+	fmt.Println("Welcome! Use SQL to query Apache Calcite.\nUse Ctrl+D, type \"exit\" or \"quit\" to exit.")
 	fmt.Println()
 
 	p := prompt.New(
@@ -86,13 +86,6 @@ func runSQLPrompt(cmd *cobra.Command, args []string) {
 		prompt.OptionSelectedSuggestionTextColor(prompt.White),   // Customize selected suggestion text color
 		prompt.OptionSelectedSuggestionBGColor(prompt.LightGray), // Customize selected suggestion background color
 		prompt.OptionPrefix("calcite \U0001F48E:sql> "),          // Set a custom prefix for the prompt
-		prompt.OptionAddKeyBind(prompt.KeyBind{
-			Key: prompt.ControlC,
-			Fn: func(buf *prompt.Buffer) {
-				fmt.Println("Exiting calcite CLI Prompt...")
-				os.Exit(0)
-			},
-		}), // Add a custom key binding (e.g., Ctrl+C to exit)
 	)
 
 	p.Run()

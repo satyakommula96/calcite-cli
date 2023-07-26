@@ -66,14 +66,11 @@ func runSQLPrompt(cmd *cobra.Command, args []string) {
 	}
 	defer db.Close()
 
-	// Create a new table writer
-	table := tablewriter.NewWriter(os.Stdout)
-
 	fmt.Println("Enter your queries. Type 'exit' to quit.")
 	fmt.Println()
 
 	p := prompt.New(
-		executeQueryWrapper(db, table),
+		executeQueryWrapper(db),
 		keywords.CustomCompleter,
 		prompt.OptionLivePrefix(LivePrefix),
 		prompt.OptionPrefixTextColor(prompt.Yellow),
@@ -83,12 +80,12 @@ func runSQLPrompt(cmd *cobra.Command, args []string) {
 		prompt.OptionSelectedSuggestionBGColor(prompt.DarkGray),
 		prompt.OptionSelectedSuggestionTextColor(prompt.White),
 		prompt.OptionCompletionOnDown(),
-		prompt.OptionTitle("Calcite CLI Prompt"),               // Set a title for the prompt
-		prompt.OptionInputTextColor(prompt.Cyan),               // Customize input text color
-		prompt.OptionDescriptionTextColor(prompt.White),        // Customize description text color
-		prompt.OptionSelectedSuggestionTextColor(prompt.Green), // Customize selected suggestion text color
-		prompt.OptionSelectedSuggestionBGColor(prompt.Black),   // Customize selected suggestion background color
-		prompt.OptionPrefix("calcite \U0001F48E:sql> "),        // Set a custom prefix for the prompt
+		prompt.OptionTitle("Calcite CLI Prompt"),                 // Set a title for the prompt
+		prompt.OptionInputTextColor(prompt.Fuchsia),              // Customize input text color
+		prompt.OptionDescriptionTextColor(prompt.Black),          // Customize description text color
+		prompt.OptionSelectedSuggestionTextColor(prompt.White),   // Customize selected suggestion text color
+		prompt.OptionSelectedSuggestionBGColor(prompt.LightGray), // Customize selected suggestion background color
+		prompt.OptionPrefix("calcite \U0001F48E:sql> "),          // Set a custom prefix for the prompt
 		prompt.OptionAddKeyBind(prompt.KeyBind{
 			Key: prompt.ControlC,
 			Fn: func(buf *prompt.Buffer) {
@@ -115,7 +112,7 @@ func LivePrefix() (prefix string, useLivePrefix bool) {
 	return prefix, useLivePrefix
 }
 
-func executeQueryWrapper(db *sql.DB, table *tablewriter.Table) func(string) {
+func executeQueryWrapper(db *sql.DB) func(string) {
 	var multiLineQuery strings.Builder
 
 	return func(query string) {
@@ -130,7 +127,7 @@ func executeQueryWrapper(db *sql.DB, table *tablewriter.Table) func(string) {
 		// Check if it is a multiline query
 		if strings.HasSuffix(trimmedQuery, ";") {
 			multiLineQuery.WriteString(trimmedQuery)
-			executeQuery(db, table, multiLineQuery.String())
+			executeQuery(db, multiLineQuery.String())
 			multiLineQuery.Reset()
 			isMultiline = false
 		} else {
@@ -144,7 +141,7 @@ func executeQueryWrapper(db *sql.DB, table *tablewriter.Table) func(string) {
 	}
 }
 
-func executeQuery(db *sql.DB, table *tablewriter.Table, query string) {
+func executeQuery(db *sql.DB, query string) {
 	// Execute the query
 	start := time.Now()
 	cmd := strings.TrimRight(query, ";")
@@ -162,16 +159,18 @@ func executeQuery(db *sql.DB, table *tablewriter.Table, query string) {
 		return
 	}
 
+	// Create a new table writer for each query
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetAutoFormatHeaders(true)
+	table.SetAutoWrapText(false)
+	table.SetReflowDuringAutoWrap(true)
+
 	// Create a slice to store the query results
 	values := make([]interface{}, len(columns))
 	scanArgs := make([]interface{}, len(columns))
 	for i := range values {
 		scanArgs[i] = &values[i]
 	}
-
-	// Clear the table and set new header
-	table.ClearRows()
-	table.SetHeader(columns)
 
 	// Fetch and print rows
 	count := 0
@@ -198,6 +197,9 @@ func executeQuery(db *sql.DB, table *tablewriter.Table, query string) {
 	}
 
 	duration := time.Since(start)
+
+	// Set the table headers
+	table.SetHeader(columns)
 
 	// Render the table
 	table.Render()

@@ -730,7 +730,6 @@ func CustomCompleter(d prompt.Document) []prompt.Suggest {
 		{Text: "ZONE", Description: "Specifies a time zone offset or region."},
 
 	}
-	
 
     return prompt.FilterHasPrefix(suggestions, input, true)
 }

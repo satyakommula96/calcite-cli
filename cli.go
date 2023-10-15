@@ -48,12 +48,12 @@ func main() {
 	// Define flags for connection URL and additional parameters
 	rootCmd.Flags().StringVar(&connectionURL, "url", connectionURL, "Connection URL")
 	rootCmd.Flags().StringVar(&serialization, "serialization", "", "Serialization parameter")
-	rootCmd.Flags().StringVar(&connectionParams, "params", "", "Extra parameters for avatica connection (ex: property=value&property=value)")
+	rootCmd.Flags().StringVar(&connectionParams, "params", "", "Extra parameters for avatica connection (ex: \"parameter1=value&...parameterN=value\")")
 	rootCmd.Flags().StringVarP(&schema, "schema", "s", "", "The schema path sets the default schema to use for this connection.")
-	rootCmd.Flags().StringVarP(&user, "username", "u", "", "Username (required if password is set)")
-	rootCmd.Flags().StringVarP(&passwd, "password", "p", "", "Password (required if username is set)")
+	rootCmd.Flags().StringVarP(&user, "username", "u", "", "The user to use when authenticating against Avatica")
+	rootCmd.Flags().StringVarP(&passwd, "password", "p", "", "The password to use when authenticating against Avatica")
 	rootCmd.MarkFlagsRequiredTogether("username", "password")
-	rootCmd.Flags().StringVarP(&maxRowsTotal, "maxRowsTotal", "m", "", "Serialization parameter")
+	rootCmd.Flags().StringVarP(&maxRowsTotal, "maxRowsTotal", "m", "", "The maxRowsTotal parameter sets the maximum number of rows to return for a given query")
 
 	err := rootCmd.Execute()
 	if err != nil {

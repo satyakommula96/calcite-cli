@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-
-package keywords
+package prompt
 
 import "github.com/c-bata/go-prompt"
 

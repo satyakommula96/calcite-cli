@@ -6,7 +6,7 @@ require (
 	github.com/apache/calcite-avatica-go/v5 v5.3.0
 	github.com/c-bata/go-prompt v0.2.6
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 )
 
 require (

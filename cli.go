@@ -23,7 +23,7 @@ import (
 	"log"
 	"strings"
 
-	_ "github.com/apache/calcite-avatica-go/v5"
+	avatica "github.com/apache/calcite-avatica-go/v5"
 	prompt "github.com/satyakommula96/calcite-cli/prompt"
 	"github.com/spf13/cobra"
 )
@@ -36,6 +36,7 @@ var (
 	user             string
 	passwd           string
 	maxRowsTotal     string
+	customParmas     string
 )
 
 func main() {
@@ -54,6 +55,7 @@ func main() {
 	rootCmd.Flags().StringVarP(&passwd, "password", "p", "", "The password to use when authenticating against Avatica")
 	rootCmd.MarkFlagsRequiredTogether("username", "password")
 	rootCmd.Flags().StringVarP(&maxRowsTotal, "maxRowsTotal", "m", "", "The maxRowsTotal parameter sets the maximum number of rows to return for a given query")
+	rootCmd.Flags().StringVar(&customParmas, "extra_params", "", "Custom connection parameters for avatica connection (ex: \"parameter1=value;...parameterN=value\")")
 
 	err := rootCmd.Execute()
 	if err != nil {
@@ -71,19 +73,32 @@ func runSQLPrompt(cmd *cobra.Command, args []string) {
 }
 
 func establishConnection() *sql.DB {
-	parameters := buildConnectionURL()
-	fmt.Println("Connecting to ", parameters)
-	db, err := sql.Open("avatica", parameters)
-	if err != nil {
-		log.Fatal(err)
+	dsn := buildConnectionURL()
+	fmt.Println("Connecting to ", dsn)
+
+	// Prepare the info map
+	info := make(map[string]string)
+	if customParmas != "" {
+		pairs := strings.Split(customParmas, ";")
+		for _, pair := range pairs {
+			kv := strings.SplitN(pair, "=", 2)
+			if len(kv) == 2 {
+				info[kv[0]] = kv[1]
+			}
+		}
 	}
-	if err = db.Ping(); err != nil {
-		log.Fatal(err)
-	}
+
+	// Create a new connector
+	connector := avatica.NewConnector(dsn).(*avatica.Connector)
+
+	// Set the info map in the connector
+	connector.Info = info
+
+	// Open the database using the connector
+	db := sql.OpenDB(connector)
 	fmt.Println("Connected")
 	return db
 }
-
 func buildConnectionURL() string {
 	var url strings.Builder
 

@@ -6,7 +6,7 @@ require (
 	github.com/apache/calcite-avatica-go/v5 v5.3.0
 	github.com/c-bata/go-prompt v0.2.6
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.9.1
 )
 
 require (
@@ -30,7 +30,7 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )

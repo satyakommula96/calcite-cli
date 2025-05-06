@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.23.3
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/apache/calcite-avatica-go/v5 v5.4.0
 	github.com/c-bata/go-prompt v0.2.6
 	github.com/olekukonko/tablewriter v0.0.5

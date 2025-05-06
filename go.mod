@@ -3,7 +3,7 @@ module github.com/satyakommula96/calcite-cli
 go 1.20
 
 require (
-	github.com/apache/calcite-avatica-go/v5 v5.3.0
+	github.com/apache/calcite-avatica-go/v5 v5.4.0
 	github.com/c-bata/go-prompt v0.2.6
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/spf13/cobra v1.9.1
@@ -14,13 +14,14 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-tty v0.0.3 // indirect
 	github.com/pkg/term v1.2.0-beta.2 // indirect
-	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
 )
 
 require (
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
-	github.com/icholy/digest v0.1.22 // indirect
+	github.com/icholy/digest v1.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -31,8 +32,8 @@ require (
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
+	google.golang.org/protobuf v1.36.5 // indirect
 )
 
 replace github.com/c-bata/go-prompt v0.2.6 => github.com/aranjan7/go-prompt v0.2.7

@@ -50,9 +50,10 @@ func ExecuteQuery(db *sql.DB, query string) {
 
 	// Create a new table writer for each query
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetAutoFormatHeaders(true)
-	table.SetAutoWrapText(false)
-	table.SetReflowDuringAutoWrap(true)
+	// TODO: set table properties to new version
+	// table.SetAutoFormatHeaders(true)
+	// table.SetAutoWrapText(false)
+	// table.SetReflowDuringAutoWrap(true)
 
 	// Create a slice to store the query results
 	values := make([]interface{}, len(columns))
@@ -86,7 +87,7 @@ func ExecuteQuery(db *sql.DB, query string) {
 	}
 
 	// Set the table headers
-	table.SetHeader(columns)
+	table.Header(columns)
 
 	// Render the table
 	table.Render()

@@ -8,7 +8,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/apache/calcite-avatica-go/v5 v5.4.0
 	github.com/c-bata/go-prompt v0.2.6
-	github.com/olekukonko/tablewriter v1.0.7
+	github.com/olekukonko/tablewriter v1.0.8
 	github.com/spf13/cobra v1.9.1
 )
 

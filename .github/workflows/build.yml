@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     tags:
-      - 'v*'  # Run workflow on version tags
+      - 'v*'
   pull_request:
     branches: [ "main" ]
   release:
@@ -13,6 +13,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,11 +28,13 @@ jobs:
           go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
           go tool cover -func=coverage.txt
 
+      # 🔒 Coverage upload ONLY on push to main
       - name: Upload coverage to Codecov
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.txt
+          files: ./coverage.txt
           flags: unittests
           fail_ci_if_error: true
 
@@ -50,6 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4

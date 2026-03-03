@@ -28,16 +28,22 @@ import (
 	calcitesql "github.com/satyakommula96/calcite-cli/calcitesql"
 )
 
-var isMultiline bool
+type PromptSession struct {
+	db             *sql.DB
+	isMultiline    bool
+	multiLineQuery strings.Builder
+}
 
 func CreateAndRunPrompt(db *sql.DB) {
 	fmt.Println("Welcome! Use SQL to query Apache Calcite.\nUse Ctrl+D, type \"exit\" or \"quit\" to exit.")
 	fmt.Println()
 
+	session := &PromptSession{db: db}
+
 	p := prompt.New(
-		executeQueryWrapper(db),
+		session.executor,
 		CustomCompleter,
-		prompt.OptionLivePrefix(LivePrefix),
+		prompt.OptionLivePrefix(session.LivePrefix),
 		prompt.OptionPrefixTextColor(prompt.Yellow),
 		prompt.OptionPreviewSuggestionTextColor(prompt.Blue),
 		prompt.OptionSuggestionBGColor(prompt.White),
@@ -56,42 +62,38 @@ func CreateAndRunPrompt(db *sql.DB) {
 	p.Run()
 }
 
-func LivePrefix() (prefix string, useLivePrefix bool) {
-	if isMultiline {
+func (s *PromptSession) LivePrefix() (prefix string, useLivePrefix bool) {
+	if s.isMultiline {
 		prefix = "... "
 		useLivePrefix = true
 	} else {
 		prefix = "calcite \U0001F48E:sql> "
-		useLivePrefix = !isMultiline
+		useLivePrefix = !s.isMultiline
 	}
 	return prefix, useLivePrefix
 }
 
-func executeQueryWrapper(db *sql.DB) func(string) {
-	var multiLineQuery strings.Builder
+func (s *PromptSession) executor(query string) {
+	// Check for exit command
+	if strings.ToLower(query) == "exit" || strings.ToLower(query) == "quit" {
+		fmt.Println("Exiting calcite CLI Prompt...")
+		os.Exit(0)
+	}
 
-	return func(query string) {
-		// Check for exit command
-		if strings.ToLower(query) == "exit" || strings.ToLower(query) == "quit" {
-			fmt.Println("Exiting calcite CLI Prompt...")
-			os.Exit(0)
+	trimmedQuery := strings.TrimSpace(query)
+
+	// Check if it is a multiline query
+	if strings.HasSuffix(trimmedQuery, ";") {
+		s.multiLineQuery.WriteString(trimmedQuery)
+		calcitesql.ExecuteQuery(s.db, s.multiLineQuery.String())
+		s.multiLineQuery.Reset()
+		s.isMultiline = false
+	} else {
+		if !s.isMultiline {
+			s.multiLineQuery.Reset()
+			s.isMultiline = true
 		}
-
-		trimmedQuery := strings.TrimSpace(query)
-
-		// Check if it is a multiline query
-		if strings.HasSuffix(trimmedQuery, ";") {
-			multiLineQuery.WriteString(trimmedQuery)
-			calcitesql.ExecuteQuery(db, multiLineQuery.String())
-			multiLineQuery.Reset()
-			isMultiline = false
-		} else {
-			if !isMultiline {
-				multiLineQuery.Reset()
-				isMultiline = true
-			}
-			multiLineQuery.WriteString(trimmedQuery)
-			multiLineQuery.WriteString(" ")
-		}
+		s.multiLineQuery.WriteString(trimmedQuery)
+		s.multiLineQuery.WriteString(" ")
 	}
 }

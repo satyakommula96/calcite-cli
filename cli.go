@@ -21,6 +21,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 
 	avatica "github.com/apache/calcite-avatica-go/v5"
@@ -100,43 +101,49 @@ func establishConnection() *sql.DB {
 	return db
 }
 func buildConnectionURL() string {
-	var url strings.Builder
+	u, err := url.Parse(connectionURL)
+	if err != nil {
+		log.Fatalf("Invalid connection URL: %v", err)
+	}
 
-	// Append the connection URL
-	url.WriteString(connectionURL)
+	if schema != "" {
+		if !strings.HasSuffix(u.Path, "/") {
+			u.Path += "/"
+		}
+		u.Path += schema
+	}
 
-	var params []string
+	q := u.Query()
 
 	// Add serialization parameter by default protobuf
 	if serialization != "" {
-		params = append(params, "serialization="+serialization)
+		q.Set("serialization", serialization)
 	}
 
 	// Add username and password as parameter
 	if user != "" {
-		params = append(params, "avaticaUser="+user)
-		params = append(params, "avaticaPassword="+passwd)
+		q.Set("avaticaUser", user)
+		q.Set("avaticaPassword", passwd)
+	}
+
+	if maxRowsTotal != "" {
+		q.Set("maxRowsTotal", maxRowsTotal)
 	}
 
 	// Add connection parameters
 	if connectionParams != "" {
-		params = append(params, connectionParams)
+		extraQ, err := url.ParseQuery(strings.ReplaceAll(connectionParams, ";", "&"))
+		if err == nil {
+			for k, v := range extraQ {
+				for _, val := range v {
+					q.Add(k, val)
+				}
+			}
+		} else {
+			log.Printf("Failed to parse connection params: %v", err)
+		}
 	}
 
-	if maxRowsTotal != "" {
-		params = append(params, "maxRowsTotal="+maxRowsTotal)
-	}
-
-	// Combine the connection URL and parameters
-	if schema != "" {
-		url.WriteString("/")
-		url.WriteString(schema)
-	}
-
-	if len(params) > 0 {
-		url.WriteString("?")
-		url.WriteString(strings.Join(params, "&"))
-	}
-
-	return url.String()
+	u.RawQuery = q.Encode()
+	return u.String()
 }

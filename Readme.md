@@ -27,15 +27,15 @@ Calcite CLI is a command-line interface for executing SQL queries using the Calc
 
 ## Build
 
-```
-go build
+```bash
+go build -v -ldflags="-s -w" -o calcite-cli
 ```
 
 ## Installation
 
 To install Calcite CLI, you can use the following command:
 
-```
+```bash
 go install github.com/satyakommula96/calcite-cli@latest
 ```
 
@@ -43,21 +43,22 @@ go install github.com/satyakommula96/calcite-cli@latest
 
 After installing Calcite CLI, you can run it using the following command:
 
+```bash
 calcite-cli [flags]
-
+```
 
 Flags:
 ```commandline
 
-  -h, --help                   help for calcite
-  -m, --maxRowsTotal string    The maxRowsTotal parameter sets the maximum number of rows to return for a given query
+  -h, --help                   Help for calcite
+  -m, --maxRowsTotal string    The maximum number of rows to return for a given query
       --params string          Extra parameters for avatica connection (ex: "parameter1=value&...parameterN=value")
   -p, --password string        The password to use when authenticating against Avatica
   -s, --schema string          The schema path sets the default schema to use for this connection.
-      --serialization string   Serialization parameter
+      --serialization string   Serialization parameter (defaults to protobuf)
       --url string             Connection URL (default "http://localhost:8080")
   -u, --username string        The user to use when authenticating against Avatica
-  ```
+```
 
 Once the Calcite CLI prompt starts, you can enter your SQL queries. To exit the prompt, type `exit` or `quit`.
 

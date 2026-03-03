@@ -11,3 +11,9 @@ updates:
       interval: "weekly"
     reviewers:
       - "satyakommula96"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - "satyakommula96"

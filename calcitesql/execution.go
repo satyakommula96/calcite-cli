@@ -20,7 +20,6 @@ package calcitesql
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -36,7 +35,7 @@ func ExecuteQuery(db *sql.DB, query string) {
 	rows, err := db.Query(cmd)
 	duration := time.Since(start)
 	if err != nil {
-		log.Println("Error executing query:", err)
+		fmt.Fprintln(os.Stderr, "Error executing query:", err)
 		return
 	}
 	defer rows.Close()
@@ -44,7 +43,7 @@ func ExecuteQuery(db *sql.DB, query string) {
 	// Get column names
 	columns, err := rows.Columns()
 	if err != nil {
-		log.Println("Error retrieving column names:", err)
+		fmt.Fprintln(os.Stderr, "Error retrieving column names:", err)
 		return
 	}
 
@@ -67,7 +66,7 @@ func ExecuteQuery(db *sql.DB, query string) {
 	for rows.Next() {
 		err = rows.Scan(scanArgs...)
 		if err != nil {
-			log.Println("Error retrieving row data:", err)
+			fmt.Fprintln(os.Stderr, "Error retrieving row data:", err)
 			continue
 		}
 

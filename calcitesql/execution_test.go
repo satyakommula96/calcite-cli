@@ -10,7 +10,7 @@ func TestExecuteQuery(t *testing.T) {
 	// Create a new mock database connection
 	db, mock, err := sqlmock.New()
 	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		t.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
 
@@ -44,7 +44,7 @@ func TestExecuteQuery(t *testing.T) {
 			tt.mock()
 			ExecuteQuery(db, tt.query)
 			if err := mock.ExpectationsWereMet(); err != nil {
-				t.Errorf("there were unfulfilled expectations: %s", err)
+				t.Errorf("There were unfulfilled expectations: %s", err)
 			}
 		})
 	}

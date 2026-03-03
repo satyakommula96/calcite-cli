@@ -32,7 +32,7 @@ func TestBuildConnectionURL(t *testing.T) {
 			connectionURL: "http://localhost:8080",
 			user:          "user1",
 			passwd:        "pass1",
-			want:          "http://localhost:8080?avaticaUser=user1&avaticaPassword=pass1",
+			want:          "http://localhost:8080?avaticaPassword=pass1&avaticaUser=user1",
 		},
 		{
 			name:          "with all params",
@@ -42,7 +42,7 @@ func TestBuildConnectionURL(t *testing.T) {
 			user:          "user1",
 			passwd:        "pass1",
 			maxRowsTotal:  "1000",
-			want:          "http://localhost:8080/myschema?serialization=protobuf&avaticaUser=user1&avaticaPassword=pass1&maxRowsTotal=1000",
+			want:          "http://localhost:8080/myschema?avaticaPassword=pass1&avaticaUser=user1&maxRowsTotal=1000&serialization=protobuf",
 		},
 	}
 

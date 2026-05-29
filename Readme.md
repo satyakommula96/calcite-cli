@@ -19,7 +19,7 @@ limitations under the License.
 
 # Calcite CLI
 
-Calcite CLI is a command-line interface for executing SQL queries using the Calcite server. It provides a prompt where you can enter queries and view the results.
+Calcite CLI is a command-line interface for executing SQL queries using Calcite or Phoenix servers via Avatica. It provides a prompt where you can enter queries and view the results.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/satyakommula96/calcite-cli.svg)](https://pkg.go.dev/github.com/satyakommula96/calcite-cli)
 [![Build Status](https://github.com/satyakommula96/calcite-cli/actions/workflows/build.yml/badge.svg)](https://github.com/satyakommula96/calcite-cli)
@@ -61,6 +61,27 @@ Flags:
 ```
 
 Once the Calcite CLI prompt starts, you can enter your SQL queries. To exit the prompt, type `exit` or `quit`.
+
+## Testing Locally with Apache Phoenix
+
+To run a test database locally using Docker, you can launch an Apache Phoenix Query Server (which runs Avatica under the hood):
+
+```bash
+docker run -d \
+  -p 2181:2181 \
+  -p 8765:8765 \
+  -p 16000:16000 \
+  -p 16010:16010 \
+  -p 16020:16020 \
+  --name phoenix-server \
+  boostport/hbase-phoenix-all-in-one:latest
+```
+
+After the container starts and initializes (takes ~15-30 seconds), connect your client:
+
+```bash
+./calcite-cli --url "http://localhost:8765"
+```
 
 ## Dependencies
 

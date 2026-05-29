@@ -20,6 +20,15 @@ jobs:
           go-version: '1.24.0'
           cache: true
 
+      - name: Format & Lint Check
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "Go code is not formatted. Please run 'go fmt ./...'"
+            gofmt -d .
+            exit 1
+          fi
+          go vet ./...
+
       - name: Test with coverage
         run: |
           go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
@@ -45,6 +54,7 @@ jobs:
           mkdir -p dist
           # Build with ldflags -s -w to strip debug symbols and drastically reduce binary size
           GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/calcite-cli-linux-amd64
+          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o dist/calcite-cli-linux-arm64
           GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dist/calcite-cli-windows-amd64.exe
           GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dist/calcite-cli-darwin-amd64
           GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dist/calcite-cli-darwin-arm64

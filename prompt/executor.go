@@ -32,6 +32,7 @@ type PromptSession struct {
 	db             *sql.DB
 	isMultiline    bool
 	multiLineQuery strings.Builder
+	suggestions    []prompt.Suggest
 }
 
 func CreateAndRunPrompt(db *sql.DB) {
@@ -40,9 +41,16 @@ func CreateAndRunPrompt(db *sql.DB) {
 
 	session := &PromptSession{db: db}
 
+	// Initialize with static SQL suggestions
+	session.suggestions = append(session.suggestions, sqlSuggestions...)
+
+	// Fetch database-specific tables and columns
+	metaSugg := fetchMetadataSuggestions(db)
+	session.suggestions = append(session.suggestions, metaSugg...)
+
 	p := prompt.New(
 		session.executor,
-		CustomCompleter,
+		session.completer,
 		prompt.OptionLivePrefix(session.LivePrefix),
 		prompt.OptionPrefixTextColor(prompt.Yellow),
 		prompt.OptionPreviewSuggestionTextColor(prompt.Blue),
@@ -96,4 +104,48 @@ func (s *PromptSession) executor(query string) {
 		s.multiLineQuery.WriteString(trimmedQuery)
 		s.multiLineQuery.WriteString(" ")
 	}
+}
+
+func (s *PromptSession) completer(d prompt.Document) []prompt.Suggest {
+	input := d.GetWordBeforeCursor()
+	if input == "" {
+		return nil
+	}
+	return prompt.FilterHasPrefix(s.suggestions, input, true)
+}
+
+func fetchMetadataSuggestions(db *sql.DB) []prompt.Suggest {
+	var suggestions []prompt.Suggest
+
+	// Fetch tables
+	tableRows, err := db.Query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES")
+	if err == nil {
+		defer tableRows.Close()
+		for tableRows.Next() {
+			var tableName string
+			if err := tableRows.Scan(&tableName); err == nil {
+				suggestions = append(suggestions, prompt.Suggest{
+					Text:        tableName,
+					Description: "Table Name",
+				})
+			}
+		}
+	}
+
+	// Fetch columns
+	columnRows, err := db.Query("SELECT DISTINCT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS")
+	if err == nil {
+		defer columnRows.Close()
+		for columnRows.Next() {
+			var columnName string
+			if err := columnRows.Scan(&columnName); err == nil {
+				suggestions = append(suggestions, prompt.Suggest{
+					Text:        columnName,
+					Description: "Column Name",
+				})
+			}
+		}
+	}
+
+	return suggestions
 }
